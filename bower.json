@@ -1,0 +1,25 @@
+{
+  "name": "clmtrackr",
+  "main": "clmtrackr.js",
+  "version": "0.0.1",
+  "homepage": "https://github.com/slopen/clmtrackr",
+  "authors": [
+    "amoygard@gmail.com"
+  ],
+  "description": "'clmtrackr fork reduced media size'",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "clmtrackr"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
