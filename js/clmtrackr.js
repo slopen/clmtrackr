@@ -24,7 +24,9 @@ var clm = {
 		if (params.stopOnConvergence === undefined) params.stopOnConvergence = false;
 		if (params.weightPoints === undefined) params.weightPoints = undefined;
 		if (params.sharpenResponse === undefined) params.sharpenResponse = false;
+		if (params.emitIterate === undefined) params.emitIterate = false;
 
+		var emitIterate = params.emitIterate;
 		var numPatches, patchSize, numParameters, patchType;
 		var gaussianPD;
 		var eigenVectors, eigenValues;
@@ -598,11 +600,13 @@ var clm = {
 			previousPositions.push(currentPositions.slice(0));
 
 			// send an event on each iteration
-			var evt = document.createEvent("Event");
-			evt.initEvent("clmtrackrIteration", true, true);
-			document.dispatchEvent(evt)
+			if (emitIterate){
+				var evt = document.createEvent("Event");
+				evt.initEvent("clmtrackrIteration", true, true);
+				document.dispatchEvent(evt);
+			}
 
-			if (this.getConvergence() < 0.5) {
+			if (this.getConvergence() < params.scoreThreshold) {
 				// we must get a score before we can say we've converged
 				if (scoringHistory.length >= 5) {
 					if (params.stopOnConvergence) {
@@ -1331,7 +1335,7 @@ var clm = {
 			};
 		})();
 
-		var cancelRequestAnimFrame = window.cancelRequestAnimFrame || (function() {
+		var cancelRequestAnimFrame = (function() {
 			return window.cancelCancelRequestAnimationFrame ||
 				window.webkitCancelRequestAnimationFrame ||
 				window.mozCancelRequestAnimationFrame ||
