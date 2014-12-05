@@ -303,6 +303,7 @@ var clm = {
 		this.stop = function() {
 			// stop the running tracker if any exists
 			cancelRequestAnimFrame(runnerTimeout);
+			runnerTimeout = null;
 		}
 
 		/*
@@ -788,7 +789,7 @@ var clm = {
 		}
 
 		var runnerFunction = function() {
-			runnerTimeout = requestAnimFrame(runnerFunction);
+			if (runnerTimeout !== null) runnerTimeout = requestAnimFrame(runnerFunction);
 			// schedule as many iterations as we can during each request
 			var startTime = (new Date()).getTime();
 			while (((new Date()).getTime() - startTime) < 16) {
@@ -1336,7 +1337,7 @@ var clm = {
 		})();
 
 		var cancelRequestAnimFrame = (function() {
-			return window.cancelCancelRequestAnimationFrame ||
+			return window.cancelAnimationFrame ||
 				window.webkitCancelRequestAnimationFrame ||
 				window.mozCancelRequestAnimationFrame ||
 				window.oCancelRequestAnimationFrame ||
