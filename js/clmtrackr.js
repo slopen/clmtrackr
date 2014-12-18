@@ -904,13 +904,35 @@ var clm = {
 			return positions;
 		}
 
+
 		// detect position of face on canvas/video element
-		var detectPosition = function(el) {
-			var canvas = document.createElement('canvas');
-			canvas.width = el.width;
-			canvas.height = el.height;
-			var cc = canvas.getContext('2d');
-			cc.drawImage(el, 0, 0, el.width, el.height);
+		var detectPosition = function(el, box) {
+			var canvas, cc;
+
+			if (!window.detectCanvas) {
+				window.detectCanvas = document.createElement('canvas');
+				// window.detectCanvas.style.position = 'absolute';
+				// window.detectCanvas.style.top = 0;
+				// window.detectCanvas.style.right = 0;
+				// window.detectCanvas.style['z-index'] = 10000000;
+				// document.body.appendChild(window.detectCanvas);
+			}
+			canvas = window.detectCanvas;
+
+			if (box){
+				if (!window.detectCanvasCtx) {
+					window.detectCanvasCtx = canvas.getContext('2d');
+					canvas.width = box.width;
+					canvas.height = box.height;
+				}
+				cc = window.detectCanvasCtx;
+				cc.drawImage(el, box.x, box.y, box.width, box.height, 0, 0, box.width, box.height);
+			} else {
+				canvas.width = el.width;
+				canvas.height = el.height;
+				cc = canvas.getContext('2d');
+				cc.drawImage(el, 0, 0, el.width, el.height);
+			}
 
 			// do viola-jones on canvas to get initial guess, if we don't have any points
 			/*var comp = ccv.detect_objects(
@@ -930,6 +952,11 @@ var clm = {
 				if (comp[i].confidence > candidate.confidence) {
 					candidate = comp[i];
 				}
+			}
+
+			if (box){
+				candidate.x += box.x;
+				candidate.y += box.y;
 			}
 
 			return candidate;
@@ -1040,15 +1067,16 @@ var clm = {
 
 		// get initial starting point for model
 		var getInitialPosition = function(element, box) {
-			var translateX, translateY, scaling, rotation;
+			var translateX, translateY, scaling, rotation, det;
 			if (box) {
-				candidate = {x : box[0], y : box[1], width : box[2], height : box[3]};
+				det = detectPosition(element, {x : box[0], y : box[1], width : box[2], height : box[3]});
 			} else {
-				var det = detectPosition(element);
-				if (!det) {
-					// if no face found, stop.
-					return false;
-				}
+				det = detectPosition(element);
+			}
+
+			if (!det) {
+				// if no face found, stop.
+				return false;
 			}
 
 			if (model.hints && mosseFilter && left_eye_filter && right_eye_filter && nose_filter) {
@@ -7827,6 +7855,8 @@ var jsfeat_face = function(image) {
   var classifier = jsfeat.haar.frontalface;
 
   this.findFace = function () {
+	var smallest = 100;
+
     if (image.tagName == 'VIDEO' || image.tagName == 'IMG') {
       work_ctx.drawImage(image, 0, 0);
     }
@@ -7853,7 +7883,11 @@ var jsfeat_face = function(image) {
               if (rects[i].confidence > best.confidence) best = rects[i];
           }
       }
-      return [best];
+	  if (best.width < smallest || best.height < smallest) {
+		return false;
+	  } else {
+		return [best];
+	  }
     } else {
       return false;
     }
